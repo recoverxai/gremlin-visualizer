@@ -73,3 +73,10 @@ The Docker container can be stopped by calling `docker stop gremlin-visualizer`.
 ## Something Missing?
 
 If you have new ideas to improve please create a issue and make a pull request
+
+
+export TARGET_VER=0.0.1 && \
+docker build -t gremlin-visualizer-proxy:$TARGET_VER . && \
+docker tag gremlin-visualizer-proxy:$TARGET_VER 668077810849.dkr.ecr.us-east-2.amazonaws.com/gremlin-visualizer-proxy:$TARGET_VER && \
+aws ecr get-login-password --region us-east-2 --profile developer | docker login --username AWS --password-stdin 668077810849.dkr.ecr.us-east-2.amazonaws.com && \
+docker push 668077810849.dkr.ecr.us-east-2.amazonaws.com/gremlin-visualizer-proxy:$TARGET_VER

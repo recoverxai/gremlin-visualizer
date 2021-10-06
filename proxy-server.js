@@ -4,6 +4,7 @@ const gremlin = require('gremlin');
 const cors = require('cors');
 const app = express();
 const port = 3001;
+const gremlinHost = process.env.GREMLIN_HOST
 
 app.use(cors({
   credentials: true,
@@ -50,13 +51,19 @@ function makeQuery(query, nodeLimit) {
   return `${query}${nodeLimitQuery}.dedup().as('node').project('id', 'label', 'properties', 'edges').by(__.id()).by(__.label()).by(__.valueMap().by(__.unfold())).by(__.outE().project('id', 'from', 'to', 'label', 'properties').by(__.id()).by(__.select('node').id()).by(__.inV().id()).by(__.label()).by(__.valueMap().by(__.unfold())).fold())`;
 }
 
+app.get('/', (req, res, next) => {
+  const info = {
+    up: true,
+    gremlinHost: gremlinHost 
+  };
+  res.send(info);
+});
+
 app.post('/query', (req, res, next) => {
-  const gremlinHost = req.body.host;
-  const gremlinPort = req.body.port;
   const nodeLimit = req.body.nodeLimit;
   const query = req.body.query;
-
-  const client = new gremlin.driver.Client(`ws://${gremlinHost}:${gremlinPort}/gremlin`, { traversalSource: 'g', mimeType: 'application/json' });
+  console.log(`Query ${query}`)
+  const client = new gremlin.driver.Client(`ws://${gremlinHost}/gremlin`, { traversalSource: 'g', mimeType: 'application/json' });
 
   client.submit(makeQuery(query, nodeLimit), {})
     .then((result) => res.send(nodesToJson(result._items)))
